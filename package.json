@@ -1,6 +1,6 @@
 {
   "name": "language-ruby-without-erb",
-  "version": "0.51.0",
+  "version": "0.52.0",
   "description": "Ruby language support in Atom",
   "main": "./lib/language-ruby-without-erb",
   "engines": {
