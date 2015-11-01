@@ -16,6 +16,18 @@ describe "Ruby grammar", ->
     {tokens} = grammar.tokenizeLine('self')
     expect(tokens[0]).toEqual value: 'self', scopes: ['source.ruby', 'variable.language.self.ruby']
 
+  it "tokenizes special functions", ->
+    {tokens} = grammar.tokenizeLine('require "."')
+    expect(tokens[0]).toEqual value: 'require', scopes: ['source.ruby', 'meta.require.ruby', 'keyword.other.special-method.ruby']
+
+    {tokens} = grammar.tokenizeLine('Kernel.require "."')
+    expect(tokens[1]).toEqual value: '.', scopes: ['source.ruby', 'punctuation.separator.method.ruby']
+    expect(tokens[2]).toEqual value: 'require ', scopes: ['source.ruby']
+
+    {tokens} = grammar.tokenizeLine('Kernel::require "."')
+    expect(tokens[1]).toEqual value: '::', scopes: ['source.ruby', 'punctuation.separator.method.ruby']
+    expect(tokens[2]).toEqual value: 'require ', scopes: ['source.ruby']
+
   it "tokenizes symbols", ->
     {tokens} = grammar.tokenizeLine(':test')
     expect(tokens[0]).toEqual value: ':', scopes: ['source.ruby', 'constant.other.symbol.ruby', 'punctuation.definition.constant.ruby']
@@ -24,6 +36,10 @@ describe "Ruby grammar", ->
     {tokens} = grammar.tokenizeLine(':$symbol')
     expect(tokens[0]).toEqual value: ':', scopes: ['source.ruby', 'constant.other.symbol.ruby', 'punctuation.definition.constant.ruby']
     expect(tokens[1]).toEqual value: '$symbol', scopes: ['source.ruby', 'constant.other.symbol.ruby']
+
+    {tokens} = grammar.tokenizeLine(':<=>')
+    expect(tokens[0]).toEqual value: ':', scopes: ['source.ruby', 'constant.other.symbol.ruby', 'punctuation.definition.constant.ruby']
+    expect(tokens[1]).toEqual value: '<=>', scopes: ['source.ruby', 'constant.other.symbol.ruby']
 
   it "tokenizes symbol as hash key (1.9 syntax)", ->
     {tokens} = grammar.tokenizeLine('foo: 1')
@@ -40,6 +56,41 @@ describe "Ruby grammar", ->
     expect(tokens[3]).toEqual value: '=>', scopes: ['source.ruby', 'punctuation.separator.key-value']
     expect(tokens[4]).toEqual value: ' ', scopes: ['source.ruby']
     expect(tokens[5]).toEqual value: '1', scopes: ['source.ruby', 'constant.numeric.ruby']
+
+  it "tokenizes :: separators", ->
+    {tokens} = grammar.tokenizeLine('File::read "test"')
+    expect(tokens[0]).toEqual value: 'File', scopes: ['source.ruby', 'support.class.ruby']
+    expect(tokens[1]).toEqual value: '::', scopes: ['source.ruby', 'punctuation.separator.method.ruby']
+    expect(tokens[2]).toEqual value: 'read ', scopes: ['source.ruby']
+
+    {tokens} = grammar.tokenizeLine('File:: read "test"')
+    expect(tokens[0]).toEqual value: 'File', scopes: ['source.ruby', 'variable.other.constant.ruby']
+    expect(tokens[1]).toEqual value: '::', scopes: ['source.ruby', 'punctuation.separator.method.ruby']
+    expect(tokens[2]).toEqual value: ' ', scopes: ['source.ruby']
+    expect(tokens[3]).toEqual value: 'read ', scopes: ['source.ruby']
+
+    {tokens} = grammar.tokenizeLine('RbConfig::CONFIG')
+    expect(tokens[0]).toEqual value: 'RbConfig', scopes: ['source.ruby', 'support.class.ruby']
+    expect(tokens[1]).toEqual value: '::', scopes: ['source.ruby', 'punctuation.separator.namespace.ruby']
+    expect(tokens[2]).toEqual value: 'CONFIG', scopes: ['source.ruby', 'variable.other.constant.ruby']
+
+    {tokens} = grammar.tokenizeLine('RbConfig:: CONFIG')
+    expect(tokens[0]).toEqual value: 'RbConfig', scopes: ['source.ruby', 'variable.other.constant.ruby']
+    expect(tokens[1]).toEqual value: '::', scopes: ['source.ruby', 'punctuation.separator.namespace.ruby']
+    expect(tokens[2]).toEqual value: ' ', scopes: ['source.ruby']
+    expect(tokens[3]).toEqual value: 'CONFIG', scopes: ['source.ruby', 'variable.other.constant.ruby']
+
+  it "tokenizes . separator", ->
+    {tokens} = grammar.tokenizeLine('File.read "test"')
+    expect(tokens[0]).toEqual value: 'File', scopes: ['source.ruby', 'support.class.ruby']
+    expect(tokens[1]).toEqual value: '.', scopes: ['source.ruby', 'punctuation.separator.method.ruby']
+    expect(tokens[2]).toEqual value: 'read ', scopes: ['source.ruby']
+
+    {tokens} = grammar.tokenizeLine('File. read "test"')
+    expect(tokens[0]).toEqual value: 'File', scopes: ['source.ruby', 'variable.other.constant.ruby']
+    expect(tokens[1]).toEqual value: '.', scopes: ['source.ruby', 'punctuation.separator.method.ruby']
+    expect(tokens[2]).toEqual value: ' ', scopes: ['source.ruby']
+    expect(tokens[3]).toEqual value: 'read ', scopes: ['source.ruby']
 
   it "tokenizes %{} style strings", ->
     {tokens} = grammar.tokenizeLine('%{te{s}t}')
@@ -188,6 +239,169 @@ describe "Ruby grammar", ->
     expect(tokens[5]).toEqual value: 'test', scopes: ['source.ruby', 'string.regexp.interpolated.ruby']
     expect(tokens[6]).toEqual value: '/', scopes: ['source.ruby', 'string.regexp.interpolated.ruby', 'punctuation.section.regexp.ruby']
 
+    {tokens} = grammar.tokenizeLine('if "test" =~ /test/ then 4 end')
+
+    expect(tokens[8]).toEqual value: '/', scopes: ['source.ruby', 'string.regexp.interpolated.ruby', 'punctuation.section.regexp.ruby']
+    expect(tokens[9]).toEqual value: 'test', scopes: ['source.ruby', 'string.regexp.interpolated.ruby']
+    expect(tokens[10]).toEqual value: '/', scopes: ['source.ruby', 'string.regexp.interpolated.ruby', 'punctuation.section.regexp.ruby']
+    expect(tokens[11]).toEqual value: ' ', scopes: ['source.ruby']
+    expect(tokens[12]).toEqual value: 'then', scopes: ['source.ruby', 'keyword.control.ruby']
+
+    {tokens} = grammar.tokenizeLine('if "test" =~ /test/; 4 end')
+
+    expect(tokens[8]).toEqual value: '/', scopes: ['source.ruby', 'string.regexp.interpolated.ruby', 'punctuation.section.regexp.ruby']
+    expect(tokens[9]).toEqual value: 'test', scopes: ['source.ruby', 'string.regexp.interpolated.ruby']
+    expect(tokens[10]).toEqual value: '/', scopes: ['source.ruby', 'string.regexp.interpolated.ruby', 'punctuation.section.regexp.ruby']
+    expect(tokens[11]).toEqual value: ';', scopes: ['source.ruby', 'punctuation.separator.statement.ruby']
+
+    {tokens} = grammar.tokenizeLine('/test/ =~ "test"')
+
+    expect(tokens[0]).toEqual value: '/', scopes: ['source.ruby', 'string.regexp.interpolated.ruby', 'punctuation.section.regexp.ruby']
+    expect(tokens[1]).toEqual value: 'test', scopes: ['source.ruby', 'string.regexp.interpolated.ruby']
+    expect(tokens[2]).toEqual value: '/', scopes: ['source.ruby', 'string.regexp.interpolated.ruby', 'punctuation.section.regexp.ruby']
+    expect(tokens[3]).toEqual value: ' ', scopes: ['source.ruby']
+    expect(tokens[4]).toEqual value: '=~', scopes: ['source.ruby', 'keyword.operator.comparison.ruby']
+
+    {tokens} = grammar.tokenizeLine('/test/ !~ "test"')
+
+    expect(tokens[0]).toEqual value: '/', scopes: ['source.ruby', 'string.regexp.interpolated.ruby', 'punctuation.section.regexp.ruby']
+    expect(tokens[1]).toEqual value: 'test', scopes: ['source.ruby', 'string.regexp.interpolated.ruby']
+    expect(tokens[2]).toEqual value: '/', scopes: ['source.ruby', 'string.regexp.interpolated.ruby', 'punctuation.section.regexp.ruby']
+    expect(tokens[3]).toEqual value: ' ', scopes: ['source.ruby']
+    expect(tokens[4]).toEqual value: '!~', scopes: ['source.ruby', 'keyword.operator.comparison.ruby']
+
+    {tokens} = grammar.tokenizeLine('/test/ != "test"')
+
+    expect(tokens[0]).toEqual value: '/', scopes: ['source.ruby', 'string.regexp.interpolated.ruby', 'punctuation.section.regexp.ruby']
+    expect(tokens[1]).toEqual value: 'test', scopes: ['source.ruby', 'string.regexp.interpolated.ruby']
+    expect(tokens[2]).toEqual value: '/', scopes: ['source.ruby', 'string.regexp.interpolated.ruby', 'punctuation.section.regexp.ruby']
+    expect(tokens[3]).toEqual value: ' ', scopes: ['source.ruby']
+    expect(tokens[4]).toEqual value: '!=', scopes: ['source.ruby', 'keyword.operator.comparison.ruby']
+
+    {tokens} = grammar.tokenizeLine('/test/ == /test/')
+
+    expect(tokens[0]).toEqual value: '/', scopes: ['source.ruby', 'string.regexp.interpolated.ruby', 'punctuation.section.regexp.ruby']
+    expect(tokens[1]).toEqual value: 'test', scopes: ['source.ruby', 'string.regexp.interpolated.ruby']
+    expect(tokens[2]).toEqual value: '/', scopes: ['source.ruby', 'string.regexp.interpolated.ruby', 'punctuation.section.regexp.ruby']
+    expect(tokens[3]).toEqual value: ' ', scopes: ['source.ruby']
+    expect(tokens[4]).toEqual value: '==', scopes: ['source.ruby', 'keyword.operator.comparison.ruby']
+    expect(tokens[5]).toEqual value: ' ', scopes: ['source.ruby']
+    expect(tokens[6]).toEqual value: '/', scopes: ['source.ruby', 'string.regexp.interpolated.ruby', 'punctuation.section.regexp.ruby']
+    expect(tokens[7]).toEqual value: 'test', scopes: ['source.ruby', 'string.regexp.interpolated.ruby']
+    expect(tokens[8]).toEqual value: '/', scopes: ['source.ruby', 'string.regexp.interpolated.ruby', 'punctuation.section.regexp.ruby']
+
+    {tokens} = grammar.tokenizeLine('/test/ === /test/')
+
+    expect(tokens[0]).toEqual value: '/', scopes: ['source.ruby', 'string.regexp.interpolated.ruby', 'punctuation.section.regexp.ruby']
+    expect(tokens[1]).toEqual value: 'test', scopes: ['source.ruby', 'string.regexp.interpolated.ruby']
+    expect(tokens[2]).toEqual value: '/', scopes: ['source.ruby', 'string.regexp.interpolated.ruby', 'punctuation.section.regexp.ruby']
+    expect(tokens[3]).toEqual value: ' ', scopes: ['source.ruby']
+    expect(tokens[4]).toEqual value: '===', scopes: ['source.ruby', 'keyword.operator.comparison.ruby']
+    expect(tokens[5]).toEqual value: ' ', scopes: ['source.ruby']
+    expect(tokens[6]).toEqual value: '/', scopes: ['source.ruby', 'string.regexp.interpolated.ruby', 'punctuation.section.regexp.ruby']
+    expect(tokens[7]).toEqual value: 'test', scopes: ['source.ruby', 'string.regexp.interpolated.ruby']
+    expect(tokens[8]).toEqual value: '/', scopes: ['source.ruby', 'string.regexp.interpolated.ruby', 'punctuation.section.regexp.ruby']
+
+    {tokens} = grammar.tokenizeLine('if false then /test/ else 4 end')
+
+    expect(tokens[4]).toEqual value: 'then', scopes: ['source.ruby', 'keyword.control.ruby']
+    expect(tokens[5]).toEqual value: ' ', scopes: ['source.ruby']
+    expect(tokens[6]).toEqual value: '/', scopes: ['source.ruby', 'string.regexp.interpolated.ruby', 'punctuation.section.regexp.ruby']
+    expect(tokens[7]).toEqual value: 'test', scopes: ['source.ruby', 'string.regexp.interpolated.ruby']
+    expect(tokens[8]).toEqual value: '/', scopes: ['source.ruby', 'string.regexp.interpolated.ruby', 'punctuation.section.regexp.ruby']
+    expect(tokens[9]).toEqual value: ' ', scopes: ['source.ruby']
+    expect(tokens[10]).toEqual value: 'else', scopes: ['source.ruby', 'keyword.control.ruby']
+
+    {tokens} = grammar.tokenizeLine('if false then 4 else /test/ end')
+
+    expect(tokens[8]).toEqual value: 'else', scopes: ['source.ruby', 'keyword.control.ruby']
+    expect(tokens[9]).toEqual value: ' ', scopes: ['source.ruby']
+    expect(tokens[10]).toEqual value: '/', scopes: ['source.ruby', 'string.regexp.interpolated.ruby', 'punctuation.section.regexp.ruby']
+    expect(tokens[11]).toEqual value: 'test', scopes: ['source.ruby', 'string.regexp.interpolated.ruby']
+    expect(tokens[12]).toEqual value: '/', scopes: ['source.ruby', 'string.regexp.interpolated.ruby', 'punctuation.section.regexp.ruby']
+    expect(tokens[13]).toEqual value: ' ', scopes: ['source.ruby']
+    expect(tokens[14]).toEqual value: 'end', scopes: ['source.ruby', 'keyword.control.ruby']
+
+    {tokens} = grammar.tokenizeLine('if true then /test/ elsif false then 4 end')
+
+    expect(tokens[4]).toEqual value: 'then', scopes: ['source.ruby', 'keyword.control.ruby']
+    expect(tokens[5]).toEqual value: ' ', scopes: ['source.ruby']
+    expect(tokens[6]).toEqual value: '/', scopes: ['source.ruby', 'string.regexp.interpolated.ruby', 'punctuation.section.regexp.ruby']
+    expect(tokens[7]).toEqual value: 'test', scopes: ['source.ruby', 'string.regexp.interpolated.ruby']
+    expect(tokens[8]).toEqual value: '/', scopes: ['source.ruby', 'string.regexp.interpolated.ruby', 'punctuation.section.regexp.ruby']
+    expect(tokens[9]).toEqual value: ' ', scopes: ['source.ruby']
+    expect(tokens[10]).toEqual value: 'elsif', scopes: ['source.ruby', 'keyword.control.ruby']
+
+    {tokens} = grammar.tokenizeLine('method /test/ do; end')
+
+    expect(tokens[1]).toEqual value: '/', scopes: ['source.ruby', 'string.regexp.interpolated.ruby', 'punctuation.section.regexp.ruby']
+    expect(tokens[2]).toEqual value: 'test', scopes: ['source.ruby', 'string.regexp.interpolated.ruby']
+    expect(tokens[3]).toEqual value: '/', scopes: ['source.ruby', 'string.regexp.interpolated.ruby', 'punctuation.section.regexp.ruby']
+    expect(tokens[4]).toEqual value: ' ', scopes: ['source.ruby']
+    expect(tokens[5]).toEqual value: 'do', scopes: ['source.ruby', 'keyword.control.start-block.ruby']
+
+    {tokens} = grammar.tokenizeLine('/test/ if true')
+
+    expect(tokens[0]).toEqual value: '/', scopes: ['source.ruby', 'string.regexp.interpolated.ruby', 'punctuation.section.regexp.ruby']
+    expect(tokens[1]).toEqual value: 'test', scopes: ['source.ruby', 'string.regexp.interpolated.ruby']
+    expect(tokens[2]).toEqual value: '/', scopes: ['source.ruby', 'string.regexp.interpolated.ruby', 'punctuation.section.regexp.ruby']
+    expect(tokens[3]).toEqual value: ' ', scopes: ['source.ruby']
+    expect(tokens[4]).toEqual value: 'if', scopes: ['source.ruby', 'keyword.control.ruby']
+
+    {tokens} = grammar.tokenizeLine('/test/ unless true')
+
+    expect(tokens[0]).toEqual value: '/', scopes: ['source.ruby', 'string.regexp.interpolated.ruby', 'punctuation.section.regexp.ruby']
+    expect(tokens[1]).toEqual value: 'test', scopes: ['source.ruby', 'string.regexp.interpolated.ruby']
+    expect(tokens[2]).toEqual value: '/', scopes: ['source.ruby', 'string.regexp.interpolated.ruby', 'punctuation.section.regexp.ruby']
+    expect(tokens[3]).toEqual value: ' ', scopes: ['source.ruby']
+    expect(tokens[4]).toEqual value: 'unless', scopes: ['source.ruby', 'keyword.control.ruby']
+
+    {tokens} = grammar.tokenizeLine('/test/ while true')
+
+    expect(tokens[0]).toEqual value: '/', scopes: ['source.ruby', 'string.regexp.interpolated.ruby', 'punctuation.section.regexp.ruby']
+    expect(tokens[1]).toEqual value: 'test', scopes: ['source.ruby', 'string.regexp.interpolated.ruby']
+    expect(tokens[2]).toEqual value: '/', scopes: ['source.ruby', 'string.regexp.interpolated.ruby', 'punctuation.section.regexp.ruby']
+    expect(tokens[3]).toEqual value: ' ', scopes: ['source.ruby']
+    expect(tokens[4]).toEqual value: 'while', scopes: ['source.ruby', 'keyword.control.ruby']
+
+    {tokens} = grammar.tokenizeLine('/test/ until true')
+
+    expect(tokens[0]).toEqual value: '/', scopes: ['source.ruby', 'string.regexp.interpolated.ruby', 'punctuation.section.regexp.ruby']
+    expect(tokens[1]).toEqual value: 'test', scopes: ['source.ruby', 'string.regexp.interpolated.ruby']
+    expect(tokens[2]).toEqual value: '/', scopes: ['source.ruby', 'string.regexp.interpolated.ruby', 'punctuation.section.regexp.ruby']
+    expect(tokens[3]).toEqual value: ' ', scopes: ['source.ruby']
+    expect(tokens[4]).toEqual value: 'until', scopes: ['source.ruby', 'keyword.control.ruby']
+
+    {tokens} = grammar.tokenizeLine('/test/ or return')
+
+    expect(tokens[0]).toEqual value: '/', scopes: ['source.ruby', 'string.regexp.interpolated.ruby', 'punctuation.section.regexp.ruby']
+    expect(tokens[1]).toEqual value: 'test', scopes: ['source.ruby', 'string.regexp.interpolated.ruby']
+    expect(tokens[2]).toEqual value: '/', scopes: ['source.ruby', 'string.regexp.interpolated.ruby', 'punctuation.section.regexp.ruby']
+    expect(tokens[3]).toEqual value: ' ', scopes: ['source.ruby']
+    expect(tokens[4]).toEqual value: 'or', scopes: ['source.ruby', 'keyword.operator.logical.ruby']
+    expect(tokens[5]).toEqual value: ' ', scopes: ['source.ruby']
+    expect(tokens[6]).toEqual value: 'return', scopes: ['source.ruby', 'keyword.control.pseudo-method.ruby']
+
+    {tokens} = grammar.tokenizeLine('/test/ and return')
+
+    expect(tokens[0]).toEqual value: '/', scopes: ['source.ruby', 'string.regexp.interpolated.ruby', 'punctuation.section.regexp.ruby']
+    expect(tokens[1]).toEqual value: 'test', scopes: ['source.ruby', 'string.regexp.interpolated.ruby']
+    expect(tokens[2]).toEqual value: '/', scopes: ['source.ruby', 'string.regexp.interpolated.ruby', 'punctuation.section.regexp.ruby']
+    expect(tokens[3]).toEqual value: ' ', scopes: ['source.ruby']
+    expect(tokens[4]).toEqual value: 'and', scopes: ['source.ruby', 'keyword.operator.logical.ruby']
+    expect(tokens[5]).toEqual value: ' ', scopes: ['source.ruby']
+    expect(tokens[6]).toEqual value: 'return', scopes: ['source.ruby', 'keyword.control.pseudo-method.ruby']
+
+    {tokens} = grammar.tokenizeLine('{/test/ => 1}')
+
+    expect(tokens[1]).toEqual value: '/', scopes: ['source.ruby', 'string.regexp.interpolated.ruby', 'punctuation.section.regexp.ruby']
+    expect(tokens[2]).toEqual value: 'test', scopes: ['source.ruby', 'string.regexp.interpolated.ruby']
+    expect(tokens[3]).toEqual value: '/', scopes: ['source.ruby', 'string.regexp.interpolated.ruby', 'punctuation.section.regexp.ruby']
+    expect(tokens[4]).toEqual value: ' ', scopes: ['source.ruby']
+    expect(tokens[5]).toEqual value: '=>', scopes: ['source.ruby', 'punctuation.separator.key-value']
+    expect(tokens[6]).toEqual value: ' ', scopes: ['source.ruby']
+    expect(tokens[7]).toEqual value: '1', scopes: ['source.ruby', 'constant.numeric.ruby']
+
   it "tokenizes the / arithmetic operator", ->
     {tokens} = grammar.tokenizeLine('call/me/maybe')
     expect(tokens[0]).toEqual value: 'call', scopes: ['source.ruby']
@@ -195,7 +409,6 @@ describe "Ruby grammar", ->
     expect(tokens[2]).toEqual value: 'me', scopes: ['source.ruby']
     expect(tokens[3]).toEqual value: '/', scopes: ['source.ruby', 'keyword.operator.arithmetic.ruby']
     expect(tokens[4]).toEqual value: 'maybe', scopes: ['source.ruby']
-
 
     {tokens} = grammar.tokenizeLine('(1+2)/3/4')
     expect(tokens[0]).toEqual value: '(', scopes: ['source.ruby', 'punctuation.section.function.ruby']
@@ -238,6 +451,15 @@ describe "Ruby grammar", ->
     expect(tokens[5]).toEqual value: '/', scopes: ['source.ruby', 'keyword.operator.arithmetic.ruby']
     expect(tokens[6]).toEqual value: ' ', scopes: ['source.ruby']
     expect(tokens[7]).toEqual value: '3', scopes: ['source.ruby', 'constant.numeric.ruby']
+
+    {tokens} = grammar.tokenizeLine('x / 2; x /= 2')
+    expect(tokens[1]).toEqual value: '/', scopes: ['source.ruby', 'keyword.operator.arithmetic.ruby']
+    expect(tokens[2]).toEqual value: ' ', scopes: ['source.ruby']
+    expect(tokens[3]).toEqual value: '2', scopes: ['source.ruby', 'constant.numeric.ruby']
+    expect(tokens[4]).toEqual value: ';', scopes: ['source.ruby', 'punctuation.separator.statement.ruby']
+    expect(tokens[6]).toEqual value: '/=', scopes: ['source.ruby', 'keyword.operator.assignment.augmented.ruby']
+    expect(tokens[7]).toEqual value: ' ', scopes: ['source.ruby']
+    expect(tokens[8]).toEqual value: '2', scopes: ['source.ruby', 'constant.numeric.ruby']
 
   it "tokenizes yard documentation comments", ->
     {tokens} = grammar.tokenizeLine('# @private')

@@ -27,6 +27,7 @@
   'rjs'
   'ru'
   'ruby'
+  'Schemafile'
   'thor'
   'Thorfile'
   'Vagrantfile'
@@ -139,7 +140,7 @@
     'name': 'keyword.other.special-method.ruby'
   }
   {
-    'begin': '\\b(require|require_relative|gem)\\b'
+    'begin': '\\b(?<!\\.|::)(require|require_relative|gem)\\b'
     'captures':
       '1':
         'name': 'keyword.other.special-method.ruby'
@@ -213,7 +214,7 @@
         'name': 'entity.name.function.ruby'
       '3':
         'name': 'punctuation.definition.parameters.ruby'
-    'comment': 'the method pattern comes from the symbol pattern, see there for a explaination'
+    'comment': 'The method pattern comes from the symbol pattern. See there for an explanation.'
     'end': '\\)'
     'endCaptures':
       '0':
@@ -496,7 +497,7 @@
     ]
   }
   {
-    'begin': '(?<![\\w)])((/))(?![*+?])(?=(?:\\\\/|[^/])*/[eimnosux]*\\s*([\\]#).,?:}]|$|\\|\\||&&))'
+    'begin': '(?<![\\w)])((/))(?![*+?])(?=(?:\\\\/|[^/])*/[eimnosux]*\\s*([\\]#).,?:}]|$|\\|\\||&&|<=>|=>|==|=~|!~|!=|;|if|else|elsif|then|do|end|unless|while|until|or|and))'
     'captures':
       '1':
         'name': 'string.regexp.interpolated.ruby'
@@ -1465,7 +1466,7 @@
       '1':
         'name': 'punctuation.definition.constant.ruby'
     'comment': 'symbols'
-    'match': '(?<!:)(:)(?>[$a-zA-Z_]\\w*(?>[?!]|=(?![>=]))?|===?|>[>=]?|<[<=]?|<=>|[%&`/\\|]|\\*\\*?|=?~|[-+]@?|\\[\\]=?|@@?[a-zA-Z_]\\w*)'
+    'match': '(?<!:)(:)(?>[$a-zA-Z_]\\w*(?>[?!]|=(?![>=]))?|===?|<=>|>[>=]?|<[<=]?|[%&`/\\|]|\\*\\*?|=?~|[-+]@?|\\[\\]=?|@@?[a-zA-Z_]\\w*)'
     'name': 'constant.other.symbol.ruby'
   }
   {
@@ -1963,10 +1964,6 @@
     'name': 'keyword.operator.other.ruby'
   }
   {
-    'match': ':'
-    'name': 'punctuation.separator.other.ruby'
-  }
-  {
     'match': '\\;'
     'name': 'punctuation.separator.statement.ruby'
   }
@@ -1975,8 +1972,23 @@
     'name': 'punctuation.separator.object.ruby'
   }
   {
-    'match': '\\.|::'
-    'name': 'punctuation.separator.method.ruby'
+    'comment': 'Mark as namespace separator if double colons followed by capital letter'
+    'match': '(::)\\s*(?=[A-Z])'
+    'captures':
+      '1':
+        'name': 'punctuation.separator.namespace.ruby'
+  }
+  {
+    'comment': 'Mark as method separator if double colons not followed by capital letter'
+    'match': '(\\.|::)\\s*(?![A-Z])'
+    'captures':
+      '1':
+        'name': 'punctuation.separator.method.ruby'
+  }
+  {
+    'comment': 'Must come after method and constant separators to prefer double colons'
+    'match': ':'
+    'name': 'punctuation.separator.other.ruby'
   }
   {
     'match': '\\{'

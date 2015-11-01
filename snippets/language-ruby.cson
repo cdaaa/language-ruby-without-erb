@@ -22,13 +22,13 @@
     'prefix': 'bm-'
     'body': 'TESTS = ${1:10_000}\nBenchmark.bmbm do |results|\n  $0\nend'
   'Dir.glob("..") { |file| .. }':
-    'prefix': 'Dir'
+    'prefix': 'Dirg'
     'body': 'Dir.glob(${1:"${2:dir/glob/*}"}) { |${3:file}| $0 }'
   'Dir[".."]':
     'prefix': 'Dir'
     'body': 'Dir[${1:"${2:glob/**/*.rb}"}]'
   'File.foreach ("..") { |line| .. }':
-    'prefix': 'File'
+    'prefix': 'Filef'
     'body': 'File.foreach(${1:"${2:path/to/file}"}) { |${3:line}| $0 }'
   'File.read("..")':
     'prefix': 'File'
@@ -91,10 +91,10 @@
     'prefix': 'w'
     'body': 'attr_writer :${0:attr_names}'
   'ClassName = Struct .. do .. end':
-    'prefix': 'cla'
+    'prefix': 'clast'
     'body': '$1 = Struct.new(:${2:attr_names}) do\n\tdef ${3:method_name}\n\t\t$0\n\tend\n\t\n\t\nend'
   'class << self .. end':
-    'prefix': 'cla'
+    'prefix': 'clase'
     'body': 'class << ${1:self}\n\t$0\nend'
   'class .. end':
     'prefix': 'cla'
@@ -114,6 +114,9 @@
   'def … end':
     'prefix': 'def'
     'body': 'def ${1:method_name}\n\t$0\nend'
+  'initialize':
+    'prefix': 'init'
+    'body': 'def initialize${1:(${2:argument})}\n\t$0\nend'
   'def method_missing .. end':
     'prefix': 'defmm'
     'body': 'def method_missing(meth, *args, &blk)\n\t$0\nend'
@@ -138,9 +141,12 @@
   'directory()':
     'prefix': 'dir'
     'body': 'File.dirname(__FILE__)'
-  'Insert do |variable| … end':
+  'Insert do … end':
     'prefix': 'do'
-    'body': 'do${1: |${2:variable}|}\n\t$0\nend'
+    'body': 'do\n\t$0\nend'
+  'Insert do |variable| … end':
+    'prefix': 'dop'
+    'body': 'do |${1:variable}|\n\t$0\nend'
   'each { |e| .. }':
     'prefix': 'ea'
     'body': 'each { |${1:e}| $0 }'
@@ -148,10 +154,10 @@
     'prefix': 'eab'
     'body': 'each_byte { |${1:byte}| $0 }'
   'each_char { |chr| .. }':
-    'prefix': 'eac-'
+    'prefix': 'eacha'
     'body': 'each_char { |${1:chr}| $0 }'
   'each_cons(..) { |group| .. }':
-    'prefix': 'eac-'
+    'prefix': 'eacon'
     'body': 'each_cons(${1:2}) { |${2:group}| $0 }'
   'each_index { |i| .. }':
     'prefix': 'eai'
@@ -217,7 +223,7 @@
     'prefix': 'min'
     'body': 'min { |a, b| $0 }'
   'module .. module_function .. end':
-    'prefix': 'mod'
+    'prefix': 'modf'
     'body': 'module $1\n\tmodule_function\n\t\n\t$0\nend'
   'module .. end':
     'prefix': 'mod'
@@ -303,6 +309,9 @@
   'pry':
     'prefix': 'pry'
     'body': 'binding.pry'
+  'Insert curly braces block':
+    'prefix': '{'
+    'body': '{ ${1:|${2:variable}|} $0 '
 '.source.ruby .comment':
   ':yields:':
     'prefix': 'y'

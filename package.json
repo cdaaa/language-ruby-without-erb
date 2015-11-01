@@ -1,6 +1,6 @@
 {
   "name": "language-ruby-without-erb",
-  "version": "0.52.0",
+  "version": "0.59.0",
   "description": "Ruby language support in Atom",
   "main": "./lib/language-ruby-without-erb",
   "engines": {
@@ -8,5 +8,8 @@
     "node": "*"
   },
   "license": "MIT",
-  "repository": "https://github.com/jtokoph/language-ruby-without-erb"
+  "repository": "https://github.com/jtokoph/language-ruby-without-erb",
+  "devDependencies": {
+    "coffeelint": "^1.10.1"
+  }
 }
